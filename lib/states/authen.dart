@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shopflutterapp/states/create_account.dart';
 import 'package:shopflutterapp/utility/my_constant.dart';
 import 'package:shopflutterapp/widgets/show_image.dart';
 import 'package:shopflutterapp/widgets/show_title.dart';
@@ -15,24 +16,48 @@ class _AuthenState extends State<Authen> {
 
   @override
   Widget build(BuildContext context) {
+    
+     
     double size = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
           behavior: HitTestBehavior.opaque,
-          child: ListView(
-            children: [
-              buildImage(size),
-              buildAppName(),
-              buildUser(size),
-              buildPass(size),
-              buildLogin(size),
-            ],
+          
+            
+            child: ListView(
+              children: [
+                buildImage(size),
+                buildAppName(),
+                buildUser(size),
+                buildPass(size),
+                buildLogin(size),
+                buildCreateAccount(),
+                
+   
+              ],
+            ),
           ),
         ),
-      ),
+      
     );
+  }
+
+  Row buildCreateAccount() {
+    return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ShowTitle(
+                  title: 'Non Account ?',
+                  textStyle: MyConstant().h3Style(),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context,MyConstant.routeCreateAccount),
+                  child: Text('Create Account'),
+                ),
+              ],
+            );
   }
 
   Row buildLogin(double size) {
@@ -59,7 +84,11 @@ class _AuthenState extends State<Authen> {
         Container(
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
-          child: TextFormField(
+          child: TextFormField( validator: (value) {
+              if (value!.isEmpty) {
+                return 'กรุณากรอก User ด้วยครับ';
+              } else {}
+            },
             decoration: InputDecoration(
               labelStyle: MyConstant().h3Style(),
               labelText: 'User :',
@@ -91,7 +120,11 @@ class _AuthenState extends State<Authen> {
         Container(
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
-          child: TextFormField(
+          child: TextFormField( validator: (value) {
+              if (value!.isEmpty) {
+                return 'กรุณากรอก Pasword ด้วยครับ';
+              } else {}
+            },
             obscureText: statusRedEye,
             decoration: InputDecoration(
               suffixIcon: IconButton(
@@ -146,8 +179,9 @@ class _AuthenState extends State<Authen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(width: size * 0.6, child: ShowImage(path: MyConstant.image1)),
+        Container(width: size * 0.6, child: ShowImage(path: MyConstant.farmlogo)),
       ],
     );
   }
+  
 }

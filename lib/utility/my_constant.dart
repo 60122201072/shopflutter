@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class MyConstant {
 
   //Genernal
-  static String appName = 'ShoppingApp';
+  static String appName = 'ShopVegetable';
 
   //Route
   static String routeAuthen = '/authen';
@@ -17,11 +17,15 @@ class MyConstant {
   static String image2 = 'images/image2.png';
   static String image3 = 'images/image3.png';
   static String image4 = 'images/image4.png';
+  static String avatar = 'images/avatar.png';
+  static String farmer = 'images/farmer.png';
+  static String farmlogo = 'images/farmlogo.png';
+  static String location = 'images/location.png';
 
   //color
-  static Color primary = Color(0xff9c27b0);
-  static Color dark = Color(0xff6a0080);
-  static Color light = Color(0xffd05ce3);
+  static Color primary = Color(0xff3caf38);
+  static Color dark = Color(0xff007e00);
+  static Color light = Color(0xff73e267);
 
   // Style
   TextStyle h1Style() => TextStyle(
@@ -46,4 +50,6 @@ class MyConstant {
                 borderRadius: BorderRadius.circular(20),
               ),
             );
+
+  
 }

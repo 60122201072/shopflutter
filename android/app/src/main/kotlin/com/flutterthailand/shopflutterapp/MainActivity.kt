@@ -1,4 +1,4 @@
-package com.flutterthailand.shopflutterapp
+package com.shopflutterapp
 
 import io.flutter.embedding.android.FlutterActivity
 

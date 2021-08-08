@@ -33,6 +33,7 @@ class MyApp extends StatelessWidget {
       title: MyConstant.appName,
       routes: map,
       initialRoute: initlalRoute,
+      
     );
   }
 }
