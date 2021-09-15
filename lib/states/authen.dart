@@ -1,6 +1,12 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shopflutterapp/models/user_model.dart';
 import 'package:shopflutterapp/states/create_account.dart';
 import 'package:shopflutterapp/utility/my_constant.dart';
+import 'package:shopflutterapp/utility/my_dialog.dart';
 import 'package:shopflutterapp/widgets/show_image.dart';
 import 'package:shopflutterapp/widgets/show_title.dart';
 
@@ -13,19 +19,20 @@ class Authen extends StatefulWidget {
 
 class _AuthenState extends State<Authen> {
   bool statusRedEye = true;
+  final formKey = GlobalKey<FormState>();
+  TextEditingController userController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    
-     
     double size = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
           behavior: HitTestBehavior.opaque,
-          
-            
+          child: Form(
+            key: formKey,
             child: ListView(
               children: [
                 buildImage(size),
@@ -34,30 +41,29 @@ class _AuthenState extends State<Authen> {
                 buildPass(size),
                 buildLogin(size),
                 buildCreateAccount(),
-                
-   
               ],
             ),
           ),
         ),
-      
+      ),
     );
   }
 
   Row buildCreateAccount() {
     return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ShowTitle(
-                  title: 'Non Account ?',
-                  textStyle: MyConstant().h3Style(),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context,MyConstant.routeCreateAccount),
-                  child: Text('Create Account'),
-                ),
-              ],
-            );
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ShowTitle(
+          title: 'Non Account ?',
+          textStyle: MyConstant().h3Style(),
+        ),
+        TextButton(
+          onPressed: () =>
+              Navigator.pushNamed(context, MyConstant.routeCreateAccount),
+          child: Text('Create Account'),
+        ),
+      ],
+    );
   }
 
   Row buildLogin(double size) {
@@ -69,13 +75,66 @@ class _AuthenState extends State<Authen> {
           width: size * 0.6,
           child: ElevatedButton(
             style: MyConstant().myButtonStyle(),
-            onPressed: () {},
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                String user = userController.text;
+                String password = passwordController.text;
+                print('## user = $user, password = $password');
+                checkAuthen(user: user, password: password);
+              }
+            },
             child: Text('Login'),
           ),
         ),
       ],
     );
   }
+
+  Future<Null> checkAuthen({String? user, String? password}) async {
+    String apiCheckAuthen =
+        '${MyConstant.domain}/shopvegetable/getUserWhereUser.php?isAdd=true&user=$user';
+    await Dio().get(apiCheckAuthen).then((value) async{
+      print('## value for API ==>> $value');
+      if (value.toString() == 'null') {
+        MyDialog().normalDialog(
+            context, 'User ผิดพลาด!!', 'ไม่มี User ชื่อ : $user ');
+      } else {
+        for (var item in json.decode(value.data)) {
+          UserModel model = UserModel.fromMap(item);
+          if (password == model.password) {
+            //success Authen
+            String type = model.type;
+            print('## Authen Succes in type ==>> $type');
+
+          SharedPreferences preferences = await SharedPreferences.getInstance();
+          preferences.setString('type', type);
+          preferences.setString('user', model.user);
+
+            switch (type) {
+              case 'buyer':
+                Navigator.pushNamedAndRemoveUntil(
+                    context, MyConstant.routeBuyerService, (route) => false);
+
+                break;
+              case 'seller':
+                Navigator.pushNamedAndRemoveUntil(
+                    context, MyConstant.routeSaleService, (route) => false);
+                break;
+              // case '':
+              // break;
+              default:
+            }
+          } else {
+            //Authen false
+            MyDialog().normalDialog(
+                context, 'รหัสผ่านผิด !!', 'กรุณาใส่รหัสใหม่อีกครั้ง');
+          }
+        }
+      }
+    });
+  }
+
+
 
   Row buildUser(double size) {
     return Row(
@@ -84,10 +143,14 @@ class _AuthenState extends State<Authen> {
         Container(
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
-          child: TextFormField( validator: (value) {
+          child: TextFormField(
+            controller: userController,
+            validator: (value) {
               if (value!.isEmpty) {
                 return 'กรุณากรอก User ด้วยครับ';
-              } else {}
+              } else {
+                return null;
+              }
             },
             decoration: InputDecoration(
               labelStyle: MyConstant().h3Style(),
@@ -120,10 +183,14 @@ class _AuthenState extends State<Authen> {
         Container(
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
-          child: TextFormField( validator: (value) {
+          child: TextFormField(
+            controller: passwordController,
+            validator: (value) {
               if (value!.isEmpty) {
                 return 'กรุณากรอก Pasword ด้วยครับ';
-              } else {}
+              } else {
+                return null;
+              }
             },
             obscureText: statusRedEye,
             decoration: InputDecoration(
@@ -179,9 +246,9 @@ class _AuthenState extends State<Authen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(width: size * 0.6, child: ShowImage(path: MyConstant.farmlogo)),
+        Container(
+            width: size * 0.6, child: ShowImage(path: MyConstant.farmlogo)),
       ],
     );
   }
-  
 }

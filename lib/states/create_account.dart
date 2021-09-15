@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -20,9 +22,15 @@ class CreateAccount extends StatefulWidget {
 class _CreateAccount extends State<CreateAccount> {
   bool statusRedEye = true;
   String? typeUser;
+  String avatar = '';
   File? file;
   double? lat, lng;
   final formKey = GlobalKey<FormState>();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
+  TextEditingController userController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
 
   @override
   void initState() {
@@ -92,6 +100,7 @@ class _CreateAccount extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
           child: TextFormField(
+            controller: nameController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'กรุณากรอก Name ด้วยครับ';
@@ -129,6 +138,7 @@ class _CreateAccount extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
           child: TextFormField(
+            controller: addressController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'กรุณากรอก Address ด้วยครับ';
@@ -171,7 +181,9 @@ class _CreateAccount extends State<CreateAccount> {
         Container(
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
-          child: TextFormField(keyboardType: TextInputType.phone,
+          child: TextFormField(
+            controller: phoneController,
+            keyboardType: TextInputType.phone,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'กรุณากรอก Phone ด้วยครับ';
@@ -209,6 +221,7 @@ class _CreateAccount extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
           child: TextFormField(
+            controller: userController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'กรุณากรอก User ด้วยครับ';
@@ -246,6 +259,7 @@ class _CreateAccount extends State<CreateAccount> {
           margin: EdgeInsets.only(top: 16),
           width: size * 0.6,
           child: TextFormField(
+            controller: passwordController,
             validator: (value) {
               if (value!.isEmpty) {
                 return 'กรุณากรอก Password ด้วยครับ';
@@ -313,7 +327,6 @@ class _CreateAccount extends State<CreateAccount> {
           key: formKey,
           child: SingleChildScrollView(
             child: Column(
-              
               // padding: EdgeInsets.all(16),
               children: [
                 buildTitle('ข้อมูลทั่วไป'),
@@ -321,7 +334,7 @@ class _CreateAccount extends State<CreateAccount> {
                 buildTitle('ชนิดของ User ผู้สมัคร :'),
                 buildRadioBuyer(size),
                 buildRadioSeller(size),
-                buildRadioRider(size),
+                // buildRadioRider(size),
                 buildTitle('ข้อมูลพื้นฐาน :'),
                 buildAddress(size),
                 buildPhone(size),
@@ -342,18 +355,90 @@ class _CreateAccount extends State<CreateAccount> {
 
   IconButton buildCreateNewAccount() {
     return IconButton(
-          onPressed: () {
-            if(formKey.currentState!.validate()){
-              if (typeUser == null) {
-                print('Non Choose Type User');
-                MyDialog().normalDialog(context, 'ยังไม่ได้เลือกชนิด User', 'กรุณาเลือกชนืด User ที่ต้องการ');
-              } else {
-                print('Process Insert to Database');
-              }
-            }
-          },
-          icon: Icon(Icons.cloud_upload),
-        );
+      onPressed: () {
+        if (formKey.currentState!.validate()) {
+          if (typeUser == null) {
+            print('Non Choose Type User');
+            MyDialog().normalDialog(context, 'ยังไม่ได้เลือกชนิด User',
+                'กรุณาเลือกชนืด User ที่ต้องการ');
+          } else {
+            print('Process Insert to Database');
+            uploadPictureAndInsertData();
+          }
+        }
+      },
+      icon: Icon(Icons.cloud_upload),
+    );
+  }
+
+  Future<Null> uploadPictureAndInsertData() async {
+    String name = nameController.text;
+    String address = addressController.text;
+    String phone = phoneController.text;
+    String user = userController.text;
+    String password = passwordController.text;
+    print(
+        '## name = $name, address = $address, phone = $phone, user = $user, password = $password');
+    String path =
+        '${MyConstant.domain}/shopvegetable/getUserWhereUser.php?isAdd=true&user=$user';
+    await Dio().get(path).then((value) async {
+      print('## value ==>> $value');
+      if (value.toString() == 'null') {
+        print('## user OK');
+
+        if (file == null) {
+          // No image
+          processInsertMySQL(
+              name: name,
+              address: address,
+              phone: phone,
+              user: user,
+              password: password,
+              );
+        } else {
+          // Have image
+          print('### process Upload pic');
+          String apiSaveAvatar =
+              '${MyConstant.domain}/shopvegetable/saveAvatar.php';
+          int i = Random().nextInt(100000);
+          String nameAvatar = 'avatar$i.jpg';
+          Map<String, dynamic> map = Map();
+          map['file'] =
+              await MultipartFile.fromFile(file!.path, filename: nameAvatar);
+          FormData data = FormData.fromMap(map);
+          await Dio().post(apiSaveAvatar, data: data).then((value) {
+            avatar = '/shopvegetable/avatar$nameAvatar';
+            processInsertMySQL(name: name,
+              address: address,
+              phone: phone,
+              user: user,
+              password: password,);
+          });
+        }
+      } else {
+        MyDialog().normalDialog(context, 'User False', 'Plese Change User');
+      }
+    });
+  }
+
+  Future<Null> processInsertMySQL({
+    String? name,
+    String? address,
+    String? phone,
+    String? user,
+    String? password,
+  }) async {
+    print('### processInsertSQL Work and avatar ==>> $avatar');
+    String apiInsertUser =
+        '${MyConstant.domain}/shopvegetable/insertUser.php?isAdd=true&name=$name&type=$typeUser&address=$address&phone=$phone&user=$user&password=$password&avatar=$avatar&lat=$lat&lng=$lng';
+    await Dio().get(apiInsertUser).then((value) {
+      if (value.toString() == 'true') {
+        Navigator.pop(context);
+      } else {
+        MyDialog().normalDialog(
+            context, 'สร้างผู้ใช้ผิดพลาด!!', 'กรุณาลองใหม่อีกครั้ง');
+      }
+    });
   }
 
   Set<Marker> setMarker() => <Marker>[
@@ -447,7 +532,7 @@ class _CreateAccount extends State<CreateAccount> {
               });
             },
             title: ShowTitle(
-              title: 'ผู้ซื้อ',
+              title: 'ผู้ซื้อสินค้า (Buyer)',
               textStyle: MyConstant().h3Style(),
             ),
           ),
@@ -471,7 +556,7 @@ class _CreateAccount extends State<CreateAccount> {
               });
             },
             title: ShowTitle(
-              title: 'ผู้ขาย',
+              title: 'ผู้ขายสินค้า (seller)',
               textStyle: MyConstant().h3Style(),
             ),
           ),
@@ -480,29 +565,29 @@ class _CreateAccount extends State<CreateAccount> {
     );
   }
 
-  Row buildRadioRider(double size) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: size * 0.6,
-          child: RadioListTile(
-            value: 'rider',
-            groupValue: typeUser,
-            onChanged: (value) {
-              setState(() {
-                typeUser = value as String?;
-              });
-            },
-            title: ShowTitle(
-              title: 'ผู้ส่ง',
-              textStyle: MyConstant().h3Style(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  // Row buildRadioRider(double size) {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.center,
+  //     children: [
+  //       Container(
+  //         width: size * 0.6,
+  //         child: RadioListTile(
+  //           value: 'rider',
+  //           groupValue: typeUser,
+  //           onChanged: (value) {
+  //             setState(() {
+  //               typeUser = value as String?;
+  //             });
+  //           },
+  //           title: ShowTitle(
+  //             title: 'ผู้ส่ง (rider)',
+  //             textStyle: MyConstant().h3Style(),
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Container buildTitle(String title) {
     return Container(

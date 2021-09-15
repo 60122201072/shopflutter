@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class MyConstant {
-
   //Genernal
   static String appName = 'ShopVegetable';
+  static String domain = 'https://ac0a-2001-fb1-20-ba30-e40f-1a5c-c777-889b.ngrok.io';
 
   //Route
   static String routeAuthen = '/authen';
@@ -11,6 +11,7 @@ class MyConstant {
   static String routeBuyerService = '/buyerService';
   static String routeSaleService = '/salerService';
   static String routeRiderService = '/riderService';
+  static String routeAddProduct = '/addProduct';
 
   //Image
   static String image1 = 'images/image1.png';
@@ -21,35 +22,57 @@ class MyConstant {
   static String farmer = 'images/farmer.png';
   static String farmlogo = 'images/farmlogo.png';
   static String location = 'images/location.png';
+  static String iconimage = 'images/iconimage.png';
 
   //color
   static Color primary = Color(0xff3caf38);
   static Color dark = Color(0xff007e00);
   static Color light = Color(0xff73e267);
+  static Map<int, Color> mapMateriaColor = {
+    50: Color.fromRGBO(255, 0, 126, 0.1),
+    100: Color.fromRGBO(255, 0, 126, 0.2),
+    200: Color.fromRGBO(255, 0, 126, 0.3),
+    300: Color.fromRGBO(255, 0, 126, 0.4),
+    400: Color.fromRGBO(255, 0, 126, 0.5),
+    500: Color.fromRGBO(255, 0, 126, 0.6),
+    600: Color.fromRGBO(255, 0, 126, 0.7),
+    700: Color.fromRGBO(255, 0, 126, 0.8),
+    800: Color.fromRGBO(255, 0, 126, 0.9),
+    900: Color.fromRGBO(255, 0, 126, 1.0),
+    
+  };
 
   // Style
   TextStyle h1Style() => TextStyle(
-    fontSize: 24,
-    color: dark,
-    fontWeight: FontWeight.bold,
-  );
+        fontSize: 24,
+        color: dark,
+        fontWeight: FontWeight.bold,
+      );
   TextStyle h2Style() => TextStyle(
-    fontSize: 18,
-    color: dark,
-    fontWeight: FontWeight.w700,
-  );
+        fontSize: 18,
+        color: dark,
+        fontWeight: FontWeight.w700,
+      );
+  TextStyle h2WhiteStyle() => TextStyle(
+        fontSize: 18,
+        color: Colors.white,
+        fontWeight: FontWeight.w700,
+      );
   TextStyle h3Style() => TextStyle(
-    fontSize: 14,
-    color: dark,
-    fontWeight: FontWeight.normal,
-  );
+        fontSize: 14,
+        color: dark,
+        fontWeight: FontWeight.normal,
+      );
+  TextStyle h3WhiteStyle() => TextStyle(
+        fontSize: 14,
+        color: Colors.white,
+        fontWeight: FontWeight.normal,
+      );
 
-  ButtonStyle myButtonStyle() =>  ElevatedButton.styleFrom(
-              primary: MyConstant.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            );
-
-  
+  ButtonStyle myButtonStyle() => ElevatedButton.styleFrom(
+        primary: MyConstant.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      );
 }
